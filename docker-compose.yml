@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg17
+    container_name: timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+
+  nanomq:
+    image: emqx/nanomq:latest-full
+    container_name: nanomq
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+    environment:
+      NANOMQ_BROKER_URL: ${NANOMQ_BROKER_URL}
+      NANOMQ_TLS_ENABLE: ${NANOMQ_TLS_ENABLE}
+      NANOMQ_TLS_URL: ${NANOMQ_TLS_URL}
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf:z
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  timescale-data:
+  redis-data:

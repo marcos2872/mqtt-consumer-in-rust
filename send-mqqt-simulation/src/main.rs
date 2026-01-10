@@ -5,7 +5,7 @@ use tokio::{task, time};
 
 #[derive(serde::Serialize)]
 struct SensorReading {
-    time: DateTime<Utc>,
+    timestamp: DateTime<Utc>,
     machine_id: String,
     sensor_id: String,
     sensor_type: String,
@@ -21,7 +21,7 @@ async fn main() {
 
     let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
     client
-        .subscribe("iot/sensors", QoS::AtMostOnce)
+        .subscribe("machines/machine1/data", QoS::AtMostOnce)
         .await
         .unwrap();
 
@@ -30,7 +30,7 @@ async fn main() {
         loop {
             let readings = vec![
                 SensorReading {
-                    time: Utc::now(),
+                    timestamp: Utc::now(),
                     machine_id: "machine1".to_string(),
                     sensor_id: "sensor1".to_string(),
                     sensor_type: "temperature".to_string(),
@@ -39,7 +39,7 @@ async fn main() {
                     status: Some("ok".to_string()),
                 },
                 SensorReading {
-                    time: Utc::now(),
+                    timestamp: Utc::now(),
                     machine_id: "machine1".to_string(),
                     sensor_id: "sensor2".to_string(),
                     sensor_type: "humidity".to_string(),
@@ -48,16 +48,16 @@ async fn main() {
                     status: Some("ok".to_string()),
                 },
                 SensorReading {
-                    time: Utc::now(),
+                    timestamp: Utc::now(),
                     machine_id: "machine1".to_string(),
                     sensor_id: "sensor3".to_string(),
                     sensor_type: "pressure".to_string(),
-                    value: 1013.25 + (i % 5) as f64 * 0.1,
+                    value: 113.25 + (i % 5) as f64 * 0.1,
                     unit: Some("hPa".to_string()),
                     status: Some("ok".to_string()),
                 },
                 SensorReading {
-                    time: Utc::now(),
+                    timestamp: Utc::now(),
                     machine_id: "machine1".to_string(),
                     sensor_id: "sensor4".to_string(),
                     sensor_type: "voltage".to_string(),
@@ -66,7 +66,7 @@ async fn main() {
                     status: Some("ok".to_string()),
                 },
                 SensorReading {
-                    time: Utc::now(),
+                    timestamp: Utc::now(),
                     machine_id: "machine1".to_string(),
                     sensor_id: "sensor5".to_string(),
                     sensor_type: "current".to_string(),
@@ -77,7 +77,7 @@ async fn main() {
             ];
             let json = serde_json::to_string(&readings).unwrap();
             if let Err(e) = client
-                .publish("iot/sensors", QoS::AtLeastOnce, false, json)
+                .publish("machines/machine1/data", QoS::AtLeastOnce, false, json)
                 .await
             {
                 eprintln!("Failed to publish: {:?}", e);

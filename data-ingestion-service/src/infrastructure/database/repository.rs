@@ -3,16 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::Row;
 use std::error::Error;
 
-#[derive(Debug, Clone)]
-pub struct SensorReading {
-    pub time: DateTime<Utc>,
-    pub machine_id: String,
-    pub sensor_id: String,
-    pub sensor_type: String,
-    pub value: f64,
-    pub unit: Option<String>,
-    pub status: Option<String>,
-}
+// Local struct removed in favor of domain::SensorReading
 
 #[derive(Clone)]
 pub struct SensorRepository {
@@ -26,7 +17,7 @@ impl SensorRepository {
 
     pub async fn insert_readings_batch(
         &self,
-        readings: &[SensorReading],
+        readings: &[crate::domain::sensor_reading::SensorReading],
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         if readings.is_empty() {
             return Ok(());
@@ -37,7 +28,7 @@ impl SensorRepository {
         );
 
         query_builder.push_values(readings, |mut b, reading| {
-            b.push_bind(reading.time)
+            b.push_bind(reading.timestamp)
                 .push_bind(&reading.machine_id)
                 .push_bind(&reading.sensor_id)
                 .push_bind(&reading.sensor_type)

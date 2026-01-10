@@ -23,9 +23,11 @@ impl MqttHandler {
                             let payload = publish.payload;
                             
                             match MessageParser::parse(&topic, &payload) {
-                                Ok(reading) => {
-                                    self.buffer.push(reading);
-                                    // println!("Pushed reading to buffer. Size: {}", self.buffer.len());
+                                Ok(readings) => {
+                                    for reading in readings {
+                                        self.buffer.push(reading);
+                                    }
+                                    // println!("Pushed readings to buffer. Size: {}", self.buffer.len());
                                 }
                                 Err(e) => {
                                     eprintln!("Failed to parse message from {}: {}", topic, e);

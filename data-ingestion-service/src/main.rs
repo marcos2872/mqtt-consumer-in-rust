@@ -59,7 +59,7 @@ async fn main() {
         mqtt_handler.run(eventloop).await;
     });
 
-    client.subscribe("machines/+/sensors/+/data").await.unwrap();
+    client.subscribe("machines/+/data").await.unwrap();
 
     // Keep main thread alive
     loop {

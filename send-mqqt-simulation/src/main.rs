@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use rumqttc::{AsyncClient, MqttOptions, QoS};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::{task, time};
 
 #[derive(serde::Serialize)]
@@ -19,7 +19,8 @@ async fn main() {
     let mut mqttoptions = MqttOptions::new("rumqtt-async", "localhost", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
 
-    let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
+    // Buffer maior para suportar 100k msgs/s
+    let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10000);
     client
         .subscribe("machines/machine1/data", QoS::AtMostOnce)
         .await
@@ -27,7 +28,12 @@ async fn main() {
 
     task::spawn(async move {
         let mut i = 0;
-        loop {
+        let total_messages = 1_000_000; // Total de mensagens a enviar
+        let start = Instant::now();
+        let mut last_log = Instant::now();
+        let mut messages_since_log = 0;
+
+        for _ in 0..total_messages {
             let readings = vec![
                 SensorReading {
                     timestamp: Utc::now(),
@@ -77,15 +83,42 @@ async fn main() {
             ];
             let json = serde_json::to_string(&readings).unwrap();
             if let Err(e) = client
-                .publish("machines/machine1/data", QoS::AtLeastOnce, false, json)
+                .publish("machines/machine1/data", QoS::AtMostOnce, false, json)
                 .await
             {
                 eprintln!("Failed to publish: {:?}", e);
                 break;
             }
-            time::sleep(Duration::from_millis(3)).await;
+
             i += 1;
+            messages_since_log += 1;
+
+            // Controle de taxa: 100k msgs/s = 10 microssegundos por mensagem
+            // Aguarda se necessário para manter a taxa
+            let elapsed = start.elapsed();
+            let expected_time = Duration::from_micros((i * 10) as u64);
+            if expected_time > elapsed {
+                time::sleep(expected_time - elapsed).await;
+            }
+
+            // Log a cada segundo
+            if last_log.elapsed() >= Duration::from_secs(1) {
+                let rate = messages_since_log as f64 / last_log.elapsed().as_secs_f64();
+                println!(
+                    "Mensagens enviadas: {} de {} (Taxa: {:.0} msgs/s)",
+                    i, total_messages, rate
+                );
+                last_log = Instant::now();
+                messages_since_log = 0;
+            }
         }
+
+        let duration = start.elapsed();
+        let actual_rate = total_messages as f64 / duration.as_secs_f64();
+        println!("\n=== Resumo ===");
+        println!("Total de mensagens: {}", total_messages);
+        println!("Tempo total: {:?}", duration);
+        println!("Taxa média: {:.0} msgs/s", actual_rate);
     });
 
     loop {

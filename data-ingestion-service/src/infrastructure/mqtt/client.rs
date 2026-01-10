@@ -1,29 +1,39 @@
-use rumqttc::{AsyncClient, Event, MqttOptions, Packet, QoS};
+use rumqttc::{AsyncClient, MqttOptions, QoS, EventLoop};
 use std::time::Duration;
-// use tokio::{task, time};
+use std::error::Error;
 
-pub async fn client() {
-    let mut mqttoptions = MqttOptions::new("data-ingestion-client", "localhost", 1883);
-    mqttoptions.set_keep_alive(Duration::from_secs(5));
+pub struct MqttClient {
+    client: AsyncClient,
+}
 
-    let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
-    client
-        .subscribe("iot/sensors", QoS::AtMostOnce)
-        .await
-        .unwrap();
+pub struct MqttConfig {
+    pub host: String,
+    pub port: u16,
+    pub client_id: String,
+    pub keep_alive: u64,
+}
 
-    loop {
-        match eventloop.poll().await {
-            Ok(notification) => match notification {
-                Event::Incoming(Packet::Publish(publish)) => {
-                    println!("Payload: {:?}", std::str::from_utf8(&publish.payload));
-                }
-                _ => println!("Received = {:?}", notification),
-            },
-            Err(e) => {
-                eprintln!("Connection error: {:?}", e);
-                break;
-            }
-        }
+impl MqttClient {
+    pub fn new(config: MqttConfig) -> (Self, EventLoop) {
+        let mut mqtt_options = MqttOptions::new(config.client_id, config.host, config.port);
+        mqtt_options.set_keep_alive(Duration::from_secs(config.keep_alive));
+
+        let (client, eventloop) = AsyncClient::new(mqtt_options, 10);
+
+        (Self { client }, eventloop)
+    }
+
+    pub async fn publish(&self, topic: &str, payload: Vec<u8>) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.client
+            .publish(topic, QoS::AtLeastOnce, false, payload)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn subscribe(&self, topic: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.client
+            .subscribe(topic, QoS::AtLeastOnce)
+            .await?;
+        Ok(())
     }
 }

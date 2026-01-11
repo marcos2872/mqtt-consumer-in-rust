@@ -74,18 +74,18 @@ async fn main() {
                     sensor_id: "sensor1",
                     value: 25.5 + (i % 100) as f64 * 0.1,
                 },
-                // SensorReading {
-                //     timestamp: base_timestamp,
-                //     machine_id: "machine1",
-                //     sensor_id: "sensor2",
-                //     value: 25.5 + (i % 100) as f64 * 0.1,
-                // },
-                // SensorReading {
-                //     timestamp: base_timestamp,
-                //     machine_id: "machine1",
-                //     sensor_id: "sensor3",
-                //     value: 25.5 + (i % 100) as f64 * 0.1,
-                // },
+                SensorReading {
+                    timestamp: base_timestamp,
+                    machine_id: "machine1",
+                    sensor_id: "sensor2",
+                    value: 25.5 + (i % 100) as f64 * 0.1,
+                },
+                SensorReading {
+                    timestamp: base_timestamp,
+                    machine_id: "machine1",
+                    sensor_id: "sensor3",
+                    value: 25.5 + (i % 100) as f64 * 0.1,
+                },
             ];
 
             let json = serde_json::to_string(&reading).unwrap();

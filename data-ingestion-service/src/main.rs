@@ -1,17 +1,17 @@
-mod infrastructure;
-mod domain;
 mod application;
+mod domain;
+mod infrastructure;
 
-use infrastructure::mqtt::client::{MqttClient, MqttConfig};
-use infrastructure::database::postgres;
-use infrastructure::database::migration;
-use infrastructure::database::repository::SensorRepository;
-use application::buffering::ReadingBuffer;
 use application::batch_processor::BatchProcessor;
+use application::buffering::ReadingBuffer;
 use application::mqtt_handler::MqttHandler;
-use tokio::task;
+use infrastructure::database::migration;
+use infrastructure::database::postgres;
+use infrastructure::database::repository::SensorRepository;
+use infrastructure::mqtt::client::{MqttClient, MqttConfig};
 use std::env;
 use std::time::Duration;
+use tokio::task;
 
 #[tokio::main]
 async fn main() {
@@ -20,24 +20,24 @@ async fn main() {
     // 1. Setup Database
     let database_url = env::var("DATABASE_URL")
         .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/db".to_string());
-    
-    let pool = postgres::create_pool(&database_url).await.expect("Failed to create database pool");
+
+    let pool = postgres::create_pool(&database_url)
+        .await
+        .expect("Failed to create database pool");
     let repository = SensorRepository::new(pool.clone());
-    
+
     // 2. Run Migrations
     println!("Running migrations...");
-    migration::run_migrations(&pool).await.expect("Failed to run migrations");
+    migration::run_migrations(&pool)
+        .await
+        .expect("Failed to run migrations");
     println!("Migrations applied successfully.");
 
     // 3. Setup Application State
     // Buffer capacity 10000, Batch size 1000, Interval 1s
-    let buffer = ReadingBuffer::new(5_000_000); 
-    let batch_processor = BatchProcessor::new(
-        buffer.clone(), 
-        repository, 
-        15000, 
-        Duration::from_millis(1)
-    );
+    let buffer = ReadingBuffer::new(100_000);
+    let batch_processor =
+        BatchProcessor::new(buffer.clone(), repository, 10_000, Duration::from_millis(1));
 
     // Spawn Batch Processor
     task::spawn(async move {

@@ -13,16 +13,16 @@ services:
     volumes:
       - timescale-data:/var/lib/postgresql/data
 
-  nanomq:
-    image: emqx/nanomq:latest-full
-    container_name: nanomq
+  emqx:
+    image: emqx/emqx:latest
+    container_name: emqx
+    environment:
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD}
+      EMQX_LISTENERS__SSL__DEFAULT__ENABLE: "true"
     ports:
       - "1883:1883"
       - "8883:8883"
-    environment:
-      NANOMQ_BROKER_URL: ${NANOMQ_BROKER_URL}
-      NANOMQ_TLS_ENABLE: ${NANOMQ_TLS_ENABLE}
-      NANOMQ_TLS_URL: ${NANOMQ_TLS_URL}
+      - "18083:18083"
     restart: unless-stopped
 
   redis:

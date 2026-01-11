@@ -1,6 +1,5 @@
 use crate::application::buffering::ReadingBuffer;
 use crate::infrastructure::database::repository::SensorRepository;
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
 

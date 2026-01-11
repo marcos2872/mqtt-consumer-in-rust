@@ -1,8 +1,8 @@
+use crate::application::buffering::ReadingBuffer;
+use crate::application::message_parser::MessageParser;
 use rumqttc::{Event, EventLoop, Packet};
 use std::time::Duration;
 use tokio::time::sleep;
-use crate::application::message_parser::MessageParser;
-use crate::application::buffering::ReadingBuffer;
 
 pub struct MqttHandler {
     buffer: ReadingBuffer,
@@ -14,6 +14,7 @@ impl MqttHandler {
     }
 
     pub async fn run(&self, mut eventloop: EventLoop) {
+        let mut i = 0;
         loop {
             match eventloop.poll().await {
                 Ok(notification) => {
@@ -21,13 +22,14 @@ impl MqttHandler {
                         Event::Incoming(Packet::Publish(publish)) => {
                             let topic = publish.topic;
                             let payload = publish.payload;
-                            
+
                             match MessageParser::parse(&topic, &payload) {
                                 Ok(readings) => {
-                                    for reading in readings {
-                                        self.buffer.push(reading);
+                                    for reading in &readings {
+                                        self.buffer.push(reading.clone());
                                     }
-                                    // println!("Pushed readings to buffer. Size: {}", self.buffer.len());
+                                    i += readings.len();
+                                    println!("MqttHandler receive {} readings", i);
                                 }
                                 Err(e) => {
                                     eprintln!("Failed to parse message from {}: {}", topic, e);

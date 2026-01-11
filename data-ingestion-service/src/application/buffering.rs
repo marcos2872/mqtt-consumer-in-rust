@@ -1,7 +1,7 @@
 use crate::domain::sensor_reading::SensorReading;
 use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
 pub struct ReadingBuffer {
@@ -37,13 +37,13 @@ impl ReadingBuffer {
         buffer.drain(0..count).collect()
     }
 
-    pub fn is_empty(&self) -> bool {
-        let buffer = self.buffer.lock().unwrap();
-        buffer.is_empty()
-    }
-    
-    pub fn len(&self) -> usize {
-        let buffer = self.buffer.lock().unwrap();
-        buffer.len()
-    }
+    // pub fn is_empty(&self) -> bool {
+    //     let buffer = self.buffer.lock().unwrap();
+    //     buffer.is_empty()
+    // }
+
+    // pub fn len(&self) -> usize {
+    //     let buffer = self.buffer.lock().unwrap();
+    //     buffer.len()
+    // }
 }

@@ -20,8 +20,8 @@ async fn main() {
     // Some(100_000) = 100k mensagens por segundo
     // Some(10_000) = 10k mensagens por segundo
     // Some(1_000) = 1k mensagens por segundo
-    let target_rate: Option<u64> = Some(10_000);
-    let total_messages = 1_000_000;
+    let target_rate: Option<u64> = Some(1_000);
+    let total_messages = 100_000;
 
     let mut mqttoptions = MqttOptions::new("rumqtt-async", "localhost", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
@@ -72,19 +72,19 @@ async fn main() {
                     timestamp: base_timestamp,
                     machine_id: "machine1",
                     sensor_id: "sensor1",
-                    value: 25.5 + (i % 100) as f64 * 0.1,
+                    value: 45.5 + (i % 100) as f64 * 0.1,
                 },
                 SensorReading {
                     timestamp: base_timestamp,
                     machine_id: "machine1",
                     sensor_id: "sensor2",
-                    value: 25.5 + (i % 100) as f64 * 0.1,
+                    value: 220.0 + (i % 100) as f64 * 0.1,
                 },
                 SensorReading {
                     timestamp: base_timestamp,
                     machine_id: "machine1",
                     sensor_id: "sensor3",
-                    value: 25.5 + (i % 100) as f64 * 0.1,
+                    value: 15.0 + (i % 100) as f64 * 0.1,
                 },
             ];
 

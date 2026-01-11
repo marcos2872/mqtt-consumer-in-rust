@@ -31,12 +31,12 @@ async fn main() {
 
     // 3. Setup Application State
     // Buffer capacity 10000, Batch size 1000, Interval 1s
-    let buffer = ReadingBuffer::new(10000); 
+    let buffer = ReadingBuffer::new(100000); 
     let batch_processor = BatchProcessor::new(
         buffer.clone(), 
         repository, 
-        1000, 
-        Duration::from_secs(1)
+        8000, 
+        Duration::from_millis(10)
     );
 
     // Spawn Batch Processor
@@ -49,7 +49,7 @@ async fn main() {
         host: "localhost".to_string(),
         port: 1883,
         client_id: "data-ingestion-service".to_string(),
-        keep_alive: 5,
+        keep_alive: 30,
     };
 
     let (client, eventloop) = MqttClient::new(config);

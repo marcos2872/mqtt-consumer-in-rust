@@ -24,17 +24,14 @@ impl SensorRepository {
         }
 
         let mut query_builder = sqlx::QueryBuilder::new(
-            "INSERT INTO sensor_readings (time, machine_id, sensor_id, sensor_type, value, unit, status) "
+            "INSERT INTO sensor_readings (time, machine_id, sensor_id, value) "
         );
 
         query_builder.push_values(readings, |mut b, reading| {
             b.push_bind(reading.timestamp)
                 .push_bind(&reading.machine_id)
                 .push_bind(&reading.sensor_id)
-                .push_bind(&reading.sensor_type)
-                .push_bind(reading.value)
-                .push_bind(&reading.unit)
-                .push_bind(&reading.status);
+                .push_bind(reading.value);
         });
 
         let query = query_builder.build();

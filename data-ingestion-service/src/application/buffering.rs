@@ -1,10 +1,12 @@
 use crate::domain::sensor_reading::SensorReading;
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Clone)]
 pub struct ReadingBuffer {
     buffer: Arc<Mutex<VecDeque<SensorReading>>>,
+    dropped_count: Arc<AtomicUsize>,
     capacity: usize,
 }
 
@@ -12,6 +14,7 @@ impl ReadingBuffer {
     pub fn new(capacity: usize) -> Self {
         Self {
             buffer: Arc::new(Mutex::new(VecDeque::with_capacity(capacity))),
+            dropped_count: Arc::new(AtomicUsize::new(0)),
             capacity,
         }
     }
@@ -19,9 +22,11 @@ impl ReadingBuffer {
     pub fn push(&self, reading: SensorReading) {
         let mut buffer = self.buffer.lock().unwrap();
         if buffer.len() >= self.capacity {
-            // Buffer full, drop oldest or log warning. 
-            // For IoT it's often better to drop oldest to keep fresh data.
-            buffer.pop_front(); 
+            buffer.pop_front();
+            let drops = self.dropped_count.fetch_add(1, Ordering::Relaxed) + 1;
+            if drops % 1000 == 0 {
+                eprintln!("WARN: Buffer full. Total items dropped: {}", drops);
+            }
         }
         buffer.push_back(reading);
     }

@@ -31,12 +31,12 @@ async fn main() {
 
     // 3. Setup Application State
     // Buffer capacity 10000, Batch size 1000, Interval 1s
-    let buffer = ReadingBuffer::new(100000); 
+    let buffer = ReadingBuffer::new(5_000_000); 
     let batch_processor = BatchProcessor::new(
         buffer.clone(), 
         repository, 
-        8000, 
-        Duration::from_millis(10)
+        15000, 
+        Duration::from_millis(1)
     );
 
     // Spawn Batch Processor

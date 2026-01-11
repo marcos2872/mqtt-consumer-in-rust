@@ -9,9 +9,9 @@ struct RawSensorReading {
     timestamp: DateTime<Utc>,
     machine_id: String,
     sensor_id: String,
-    sensor_type: String,
+    // sensor_type: String,
     value: f64,
-    unit: Option<String>,
+    // unit: Option<String>,
     // status: String, // We can map this to Option<String> if needed, or ignore
 }
 
@@ -39,9 +39,9 @@ impl MessageParser {
             let reading = SensorReading::new(
                 raw.machine_id,
                 raw.sensor_id,
-                raw.sensor_type,
+                // raw.sensor_type,
                 raw.value,
-                raw.unit,
+                // raw.unit
                 raw.timestamp,
             );
 

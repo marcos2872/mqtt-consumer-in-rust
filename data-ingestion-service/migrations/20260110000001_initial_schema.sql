@@ -3,10 +3,10 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     time TIMESTAMPTZ NOT NULL,
     machine_id TEXT NOT NULL,
     sensor_id TEXT NOT NULL,
-    sensor_type TEXT NOT NULL,
-    value FLOAT8 NOT NULL,
-    unit TEXT,
-    status TEXT
+    -- sensor_type TEXT NOT NULL,
+    value FLOAT8 NOT NULL
+    -- unit TEXT,
+    -- status TEXT
 );
 
 SELECT create_hypertable('sensor_readings', 'time', if_not_exists => TRUE);
@@ -20,9 +20,9 @@ ALTER TABLE sensor_readings SET (
 SELECT add_compression_policy('sensor_readings', INTERVAL '1 week', if_not_exists => TRUE);
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_machine_sensor_time 
+CREATE INDEX IF NOT EXISTS idx_machine_sensor_time
     ON sensor_readings (machine_id, sensor_id, time DESC);
-CREATE INDEX IF NOT EXISTS idx_machine_time 
+CREATE INDEX IF NOT EXISTS idx_machine_time
     ON sensor_readings (machine_id, time DESC);
 
 -- Retention (1 ano)

@@ -20,8 +20,8 @@ async fn main() {
     // Some(100_000) = 100k mensagens por segundo
     // Some(10_000) = 10k mensagens por segundo
     // Some(1_000) = 1k mensagens por segundo
-    let target_rate: Option<u64> = Some(1_000);
-    let total_messages = 100_000;
+    let target_rate: Option<u64> = Some(100);
+    let total_messages = 10_000;
 
     let mut mqttoptions = MqttOptions::new("rumqtt-async", "localhost", 1883);
     mqttoptions.set_keep_alive(Duration::from_secs(5));

@@ -24,23 +24,28 @@ impl Scheduler {
             let window_start = now - chrono::Duration::minutes(1);
             let window_end = now;
 
-            // In a real app, we would iterate over all active machines/sensors.
-            // fetching them from DB or Redis.
-            // For this demo, I'll hardcode a few test IDs or valid ones.
-            let machines = vec!["machine_001"]; 
-            let sensors = vec!["temperature", "pressure", "vibration"];
-
-            for machine_id in &machines {
-                for sensor_id in &sensors {
-                     let aggregator = self.aggregator.clone();
-                     let m_id = machine_id.to_string();
-                     let s_id = sensor_id.to_string();
-                     
-                     tokio::spawn(async move {
-                         if let Err(e) = aggregator.process_aggregation(m_id, s_id, window_start, window_end).await {
-                             eprintln!("Error processing aggregation: {}", e);
-                         }
-                     });
+            // Fetch active machine/sensor pairs from the last hour (to catch frequent updaters)
+            let lookback = now - chrono::Duration::hours(1);
+            
+            match self.aggregator.get_active_sensors(lookback).await {
+                Ok(active_pairs) => {
+                    println!("Found {} active sensor streams", active_pairs.len());
+                    for (machine_id, sensor_id) in active_pairs {
+                         let aggregator = self.aggregator.clone();
+                         let m_id = machine_id;
+                         let s_id = sensor_id;
+                         let w_start = window_start;
+                         let w_end = window_end;
+                         
+                         tokio::spawn(async move {
+                             if let Err(e) = aggregator.process_aggregation(m_id, s_id, w_start, w_end).await {
+                                 eprintln!("Error processing aggregation: {}", e);
+                             }
+                         });
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to fetch active sensors: {}", e);
                 }
             }
         }

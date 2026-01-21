@@ -11,6 +11,7 @@ pub struct Aggregation {
     pub min_value: f64,
     pub max_value: f64,
     pub count: i64,
+    pub p99_value: Option<f64>,
     pub timestamp: DateTime<Utc>,
 }
 
@@ -24,6 +25,7 @@ impl Aggregation {
         min_value: f64,
         max_value: f64,
         count: i64,
+        p99_value: Option<f64>,
     ) -> Self {
         Self {
             machine_id,
@@ -34,6 +36,7 @@ impl Aggregation {
             min_value,
             max_value,
             count,
+            p99_value,
             timestamp: Utc::now(),
         }
     }

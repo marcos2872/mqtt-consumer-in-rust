@@ -18,6 +18,10 @@ impl Aggregator {
         }
     }
 
+    pub async fn get_active_sensors(&self, since: DateTime<Utc>) -> Result<Vec<(String, String)>, Box<dyn Error + Send + Sync>> {
+        Ok(self.repository.get_active_sensors(since).await?)
+    }
+
     pub async fn process_aggregation(
         &self,
         machine_id: String,
@@ -31,6 +35,7 @@ impl Aggregator {
             .await?;
 
         if values.is_empty() {
+            println!("No readings found for {}/{} in range {} - {}", machine_id, sensor_id, window_start, window_end);
             return Ok(());
         }
 
@@ -40,6 +45,12 @@ impl Aggregator {
         let avg_value = sum / count as f64;
         let min_value = values.iter().cloned().fold(f64::INFINITY, f64::min);
         let max_value = values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        
+        // Calculate P99
+        let mut sorted_values = values.clone();
+        sorted_values.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let p99_index = ((count as f64 * 0.99).ceil() as usize).saturating_sub(1);
+        let p99_value = sorted_values.get(p99_index).cloned();
 
         let aggregation = Aggregation::new(
             machine_id.clone(),
@@ -50,6 +61,7 @@ impl Aggregator {
             min_value,
             max_value,
             count,
+            p99_value,
         );
 
         // 3. Save to DB
